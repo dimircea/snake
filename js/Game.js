@@ -266,8 +266,10 @@ function Game() {
   var updateSpeed = function(updateSpeed) {
     var speedElem = document.getElementById("speed");
     snake.setSpeed(snake.speed + updateSpeed);
+    fps = snake.speed;
     speedElem.removeChild(speedElem.firstChild);
     speedElem.appendChild(document.createTextNode(snake.speed)); 
+    createjs.Ticker.setFPS(fps);
   };
 };
 
