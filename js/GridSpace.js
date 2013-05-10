@@ -71,7 +71,7 @@ GridSpace.prototype.getCellRealCoordinates = function(x, y) {
  * @return coordinates of the cell at the given position
  */
 GridSpace.prototype.generateRandomPosition = function(excludePositions) {
-  var maxW = this.cellsOnWidth - 1, maxH = this.cellsOnHeight - 1;
+  var maxW = this.cellsOnWidth, maxH = this.cellsOnHeight;
   var x = 0, y = 0, i = 0, n = 0, found = false;
   
   // be sure that the position is free
@@ -117,13 +117,7 @@ GridSpace.prototype.checkCollision = function(snakeBody) {
       || headX >= this.cellsOnWidth 
       || headY >= this.cellsOnHeight) {
       
-    item = this.map[headX][headY];
-    if(item instanceof Item) {
-      return item;
-    } else {
       return new Item(Item.Type.OBSTACLE, 0);
-    }
-    return true;
   }
   // check the collision with items
   item = this.map[headX][headY];
@@ -170,6 +164,5 @@ GridSpace.prototype.removeItem = function(x, y) {
     || typeof(y) !== "number" || y % 1 !== 0) {
     return;
   }
-      console.log(x + "  " + y);
   this.map[x][y] = null;
 };  

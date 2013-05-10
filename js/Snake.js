@@ -49,12 +49,34 @@ Snake.prototype.setSpeed = function(speed) {
 /** 
  * @author Mircea Diaconescu
  *
- * The snake eats, so it will grow in length
- * @param size
- *          the amount of size to grow with
- * @return the new head position
+ * The snake eats, so it will grow in length with 1 unit
+ * @param graphics
+ *          the graphic element for the new body part
  */
-Snake.prototype.grow = function(size) {
+Snake.prototype.grow = function(graphics) {
+  var head = this.body[this.body.length - 1];
+  switch(this.direction) {
+    case Direction.NONE : 
+      return;
+    case Direction.UP : 
+      x = 0;
+      y = 1;
+      break;
+    case Direction.RIGHT : 
+      x = 1;
+      y = 0;
+      break;
+    case Direction.DOWN : 
+      x = 0;
+      y = -1;
+      break;
+    case Direction.LEFT : 
+      x = -1;
+      y = 0;
+      break;
+  }
+  this.body.push(new Position(head.x + x, head.y + y));
+  this.bodyGraphics.unshift(graphics);
 };
 
 /** 

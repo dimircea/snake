@@ -48,8 +48,20 @@ Object.defineProperty(Item.Type, "CHERRY", {
   enumerable: true,
   configurable: false
 });
-Object.defineProperty(Item.Type, "MAGIC", {
+Object.defineProperty(Item.Type, "STRAWBERRY", {
   value: 4,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+Object.defineProperty(Item.Type, "RASPBERRY", {
+  value: 5,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+Object.defineProperty(Item.Type, "LEMON", {
+  value: 6,
   writable: false,
   enumerable: true,
   configurable: false

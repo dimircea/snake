@@ -8,7 +8,7 @@ function Game() {
   // the game world - a grid space representation
   var world = new GridSpace(20, 15, "playground");
   // the snake actor - controllable by player
-  var snake = new Snake(5, 5);
+  var snake = new Snake(5, 3);
   // the FPS rate
   var fps = snake.speed;
   // create a stage by getting a reference to the canvas
@@ -22,22 +22,31 @@ function Game() {
   
   // initialize the Game Engine
   this.init = function() {
-    // start playing the sound
-    createjs.Sound.play("game", "none", 0, 0, -1);
+    difficultyLevel = 1;
+    score = 0;
+    
     // register keyboard events
     document.addEventListener('keydown', function(e) {
       var keyCode = (e.keyCode ? e.keyCode : e.which);
       switch(keyCode) {
         case 37 : 
           snake.moveLeft();
+        case 65 : 
+          snake.moveLeft();
         break;
         case 38 : 
+          snake.moveUp();
+        case 87 : 
           snake.moveUp();
         break;
         case 39 : 
           snake.moveRight();
+        case 68 : 
+          snake.moveRight();
         break;
         case 40 : 
+          snake.moveDown();
+        case 83 : 
           snake.moveDown();
         break;
       }
@@ -47,40 +56,55 @@ function Game() {
     
     // create the static items
     createStaticItems();
+    
+    // show initial score
+    updateScore(0);
+    
+    // show initial level
+    updateLevel(0);
+    
+    // show initial speed
+    updateSpeed(0);
   };
 
   // the method that trigger the update on each clock tick
   var update = function(e) {
     var bodyCollision = false, itemCollision = false, mapPosition = null;
-    var snakeHead = snake.body[snake.body.length - 1];
-    var playTime = parseInt(e.runTime / 1000);
+    var playTime = parseInt(e.runTime / 1000), bmp = null, snakeHead = null;
+    
     // snake will move one step in the current direction
     snake.move();
+    // redraw the snake
+    drawSnake();
+    
     itemCollision = world.checkCollision(snake.body);
     bodyCollision = snake.checkBodyCollision();
-     if(itemCollision !==null) console.log(itemCollision);
+    snakeHead = snake.body[snake.body.length - 1];
     if(bodyCollision || (itemCollision !== null && itemCollision.type === Item.Type.OBSTACLE)) {
       self.stop();
       createjs.Sound.play("ouch");
     } else if(itemCollision !== null && itemCollision.type !== Item.Type.OBSTACLE) {
-      score += itemCollision.value;
+      bmp = new createjs.Bitmap(self.images["snakeBody"]);
+      // add BMP Shape instance to stage display list.
+      stage.addChild(bmp);
       world.removeItem(snakeHead.x, snakeHead.y);
       stage.removeChild(itemCollision.graphics)
       foodItemAvailable = false;
-      createjs.Sound.play("ouch");
-    }
-    // redraw the snake
-    drawSnake();
-    
-    // create dynamic items
+      updateScore(itemCollision.value);
+      createjs.Sound.play("eating");
+      snake.grow(bmp);
+      
+      // update level if is the case
+      if(score > (difficultyLevel * (difficultyLevel + 1) * 10)) {
+        updateLevel(1);    
+        updateSpeed(1);
+      }
+    }  
+    // create dynamic food items
     if(!foodItemAvailable && playTime !== 0 && playTime % 3 === 0) {
-      mapPosition = world.generateRandomPosition(snake.body);
-      createItemOnMap(Item.Type.APPLE, difficultyLevel * 5, mapPosition.x, mapPosition.y);
+      createFoodItem();
       foodItemAvailable = true;
     }
-
-    // redraw scene
-    stage.update();
   };
   
   // the method that will trigger the game start
@@ -105,7 +129,7 @@ function Game() {
     var coords = null, radius = world.getMinCellSize() / 2;
     var shape = null, firstDraw = (snake.bodyGraphics.length < 1);
     var offsetX = 0, offsetY = 0;
-   
+
     // draw the snake
     for(i = 0; i < n; i++) {
       snakePartPos = snake.body[i];
@@ -132,15 +156,15 @@ function Game() {
       }
       bmp.x = coords.x - world.cellWidthSize / 2 - offsetX;
       bmp.y = coords.y - world.cellHeightSize / 2 - offsetY;
-      // update stage will render next frame
-      stage.update();
     }
+    // update stage will render next frame
+    stage.update();
   };
   
   // create the static items
   var createStaticItems = function() {
     var maxW = world.cellsOnWidth - 1, maxH = world.cellsOnHeight - 1, item = null;
-    var i = 0, itemsNr = difficultyLevel * maxW * maxH * 0.01;
+    var i = 0, itemsNr = difficultyLevel * maxW * maxH * 0.0075;
     var bmp = null, mapPosition = null, realPosition = null;
     // create top-bottom map margins
     for(i = 0; i <= maxW; i++) {
@@ -177,9 +201,15 @@ function Game() {
       case Item.Type.CHERRY: 
         img = self.images["cherry"];
         break;
-      case Item.Type.MAGIC: 
-        img = self.images["magic"];
-        break;
+     case Item.Type.STRAWBERRY: 
+        img = self.images["strawberry"];
+        break;  
+      case Item.Type.RASPBERRY: 
+        img = self.images["raspberry"];
+        break;  
+      case Item.Type.LEMON: 
+        img = self.images["lemon"];
+        break;  
     };
     realPosition = world.getCellRealCoordinates(x, y);
     bmp = new createjs.Bitmap(img);
@@ -192,6 +222,53 @@ function Game() {
     // update stage will render next frame
     stage.update();
   };
+  
+  // create new food item on the map
+  var createFoodItem = function() {
+    var type = 2 + Math.floor(Math.random() * 5);
+    var value = difficultyLevel * (type + 3);;
+    switch(type) {
+      case 2: 
+        type = Item.Type.APPLE;
+        break;
+      case 3: 
+        type = Item.Type.CHERRY;
+        break;
+      case 4: 
+        type = Item.Type.STRAWBERRY;
+        break;  
+      case 5: 
+        type = Item.Type.RASPBERRY;
+        break;  
+      case 6: 
+        type = Item.Type.LEMON;
+        break;  
+    }
+    mapPosition = world.generateRandomPosition(snake.body);
+    createItemOnMap(type, value, mapPosition.x, mapPosition.y);
+  };
+  
+  // update the score
+  var updateScore = function(addedValue) {
+    var scoreElem = document.getElementById("score");
+    score += addedValue;
+    scoreElem.removeChild(scoreElem.firstChild);
+    scoreElem.appendChild(document.createTextNode(score)); 
+  };
+  // update the level
+  var updateLevel = function(addedValue) {
+    var levelElem = document.getElementById("level");
+    difficultyLevel += addedValue;
+    levelElem.removeChild(levelElem.firstChild);
+    levelElem.appendChild(document.createTextNode(difficultyLevel)); 
+  };
+  // update the snake speed
+  var updateSpeed = function(updateSpeed) {
+    var speedElem = document.getElementById("speed");
+    snake.setSpeed(snake.speed + updateSpeed);
+    speedElem.removeChild(speedElem.firstChild);
+    speedElem.appendChild(document.createTextNode(snake.speed)); 
+  };
 };
 
 // Finished loading the HTML Document, start playing then...
@@ -201,6 +278,9 @@ window.addEventListener("load", function() {
   // load sound assets
   createjs.Sound.registerSound("media/sounds/game.mp3|media/sounds/game.ogg", "game");
   createjs.Sound.registerSound("media/sounds/ouch.mp3|media/sounds/ouch.ogg", "ouch");
+  createjs.Sound.registerSound("media/sounds/eating.mp3|media/sounds/eating.ogg", "eating");
+  // start playing the sound
+  createjs.Sound.play("game", "none", 0, 0, -1);
 
   // load graphic assets
   queue.addEventListener("complete", function() {
@@ -209,6 +289,9 @@ window.addEventListener("load", function() {
     game.images["snakeBody"] = queue.getResult("snakeBody");
     game.images["apple"] = queue.getResult("apple");
     game.images["cherry"] = queue.getResult("cherry");
+    game.images["strawberry"] = queue.getResult("strawberry");
+    game.images["raspberry"] = queue.getResult("raspberry");
+    game.images["lemon"] = queue.getResult("lemon");
     // graphics loaded, so lets start playing
     game.init();
     game.play();
@@ -219,5 +302,8 @@ window.addEventListener("load", function() {
     {id: "snakeBody", src: "media/images/snake-body.png"},
     {id: "apple", src: "media/images/apple.png"},
     {id: "cherry", src: "media/images/cherry.png"},
+    {id: "strawberry", src: "media/images/strawberry.png"},
+    {id: "raspberry", src: "media/images/raspberry.png"},
+    {id: "lemon", src: "media/images/lemon.png"},
   ]);
 });
