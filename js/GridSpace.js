@@ -106,35 +106,31 @@ GridSpace.prototype.generateRandomPosition = function(excludePositions) {
  * like wall or the snake itself.
  * @param snakeBody
  *          the array defining the snake body positions
- * @return true if the snake collides with not allowed items, false otherwise
+ * @return the collided Item or null
  */
 GridSpace.prototype.checkCollision = function(snakeBody) {
-  var n = snakeBody.length, i = 0;
-  var bodyPartPos = null, bodyPartX = 0, bodyPartY = 0, item = null;
-  for(i = 0; i < n; i++) {
-    bodyPartPos = snakeBody[i];
-    bodyPartX = bodyPartPos.x;
-    bodyPartY = bodyPartPos.y;
-    
-    // check collision with the space boundaries
-    if(bodyPartX < 0 || bodyPartY < 0 
-      || bodyPartX >= this.cellsOnWidth 
-      || bodyPartY >= this.cellsOnHeight) {
-        return true;
+  var snakeHead = snakeBody[snakeBody.length - 1];
+  var headX = snakeHead.x, headY = snakeHead.y, item = null;
+
+  // check collision with the space boundaries
+  if(headX < 0 || headY < 0 
+      || headX >= this.cellsOnWidth 
+      || headY >= this.cellsOnHeight) {
+      
+    item = this.map[headX][headY];
+    if(item instanceof Item) {
+      return item;
+    } else {
+      return new Item(Item.Type.OBSTACLE, 0);
     }
-    // check the collision with items
-    item = this.map[bodyPartX][bodyPartY];
-    if(item instanceof Item && item.type === Item.Type.OBSTACLE){
-      return true;
-    }
-    // check collision with the space boundaries
-    if(bodyPartX < 0 || bodyPartY < 0 
-      || bodyPartX >= this.cellsOnWidth 
-      || bodyPartY >= this.cellsOnHeight) {
-        return true;
-    }
+    return true;
   }
-  return false;
+  // check the collision with items
+  item = this.map[headX][headY];
+  if(item instanceof Item){
+    return item;
+  }
+  return null;
 };
 
 /**
@@ -170,9 +166,10 @@ GridSpace.prototype.addItem = function(item, x, y) {
  *          where to place the new item (defaults to 0 if value not provided)
  */
 GridSpace.prototype.removeItem = function(x, y) {
-  if(typeof(x) !== number || x % 1 !== 0 
-    || typeof(y) !== number || y % 1 !== 0) {
+  if(typeof(x) !== "number" || x % 1 !== 0 
+    || typeof(y) !== "number" || y % 1 !== 0) {
     return;
   }
+      console.log(x + "  " + y);
   this.map[x][y] = null;
 };  

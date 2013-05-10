@@ -8,6 +8,27 @@ body {
   padding: 0;
 }
 
+label {
+  color: white;
+  font-weight: bold;
+}
+#title {
+  display: inline-block;
+  color: white;
+  font-weight: bold;
+}
+#infoBoard {
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+  width: 636px;
+  height: 2em;
+  border: 2px solid red;
+  border-radius: 8px 8px 0 0;
+  background: url('../media/images/background.png');
+  opacity: 0.75;
+}
+
 #playground {
   display: block;
   margin: 0 auto;

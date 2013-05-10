@@ -3,15 +3,18 @@ function Game() {
   var self = this;
   // the difficulty level
   var difficultyLevel = 1;
+  // the game score
+  var score = 0;
   // the game world - a grid space representation
   var world = new GridSpace(20, 15, "playground");
   // the snake actor - controllable by player
-  var snake = new Snake(15, 8);
+  var snake = new Snake(5, 5);
   // the FPS rate
   var fps = snake.speed;
   // create a stage by getting a reference to the canvas
   var stage = new createjs.Stage("playground");
-  
+  // flag to detect if currently there is an eatable item on map
+  var foodItemAvailable = false;
   // the array with used images
   this.images = [];
   // the array with used audio
@@ -44,29 +47,37 @@ function Game() {
     
     // create the static items
     createStaticItems();
-    
-    // draw the items available on the map
-    drawMapItems();
   };
 
   // the method that trigger the update on each clock tick
-  var update = function() {
-    var collided = false, foodDetected = false, mapPosition = null;
+  var update = function(e) {
+    var bodyCollision = false, itemCollision = false, mapPosition = null;
+    var snakeHead = snake.body[snake.body.length - 1];
+    var playTime = parseInt(e.runTime / 1000);
     // snake will move one step in the current direction
     snake.move();
-    collided = world.checkCollision(snake.body);
-    collided = collided || snake.checkBodyCollision();
-    if(collided === true) {
+    itemCollision = world.checkCollision(snake.body);
+    bodyCollision = snake.checkBodyCollision();
+     if(itemCollision !==null) console.log(itemCollision);
+    if(bodyCollision || (itemCollision !== null && itemCollision.type === Item.Type.OBSTACLE)) {
       self.stop();
       createjs.Sound.play("ouch");
-    } else if(foodDetected) {
+    } else if(itemCollision !== null && itemCollision.type !== Item.Type.OBSTACLE) {
+      score += itemCollision.value;
+      world.removeItem(snakeHead.x, snakeHead.y);
+      stage.removeChild(itemCollision.graphics)
+      foodItemAvailable = false;
       createjs.Sound.play("ouch");
     }
+    // redraw the snake
     drawSnake();
     
     // create dynamic items
-    mapPosition = world.generateRandomPosition(snake.body);
-    createItemOnMap(Item.Type.APPLE, difficultyLevel * 5, mapPosition.x, mapPosition.y);
+    if(!foodItemAvailable && playTime !== 0 && playTime % 3 === 0) {
+      mapPosition = world.generateRandomPosition(snake.body);
+      createItemOnMap(Item.Type.APPLE, difficultyLevel * 5, mapPosition.x, mapPosition.y);
+      foodItemAvailable = true;
+    }
 
     // redraw scene
     stage.update();
@@ -126,22 +137,6 @@ function Game() {
     }
   };
   
-  // draw items
-  var drawMapItems = function() {
-    var width = world.map.length, height = world.map[0].length;
-    var x = 0, y = 0;
-    for(x = 0 ; x < width; x++) {
-      for(y = 0; y < height; y++) {
-        if(world.map[x][y]) {
-          // add BMP instance to stage display list.
-          stage.addChild(world.map[x][y].graphics);
-          // update stage will render next frame
-          stage.update();
-        }
-      }
-    }
-  };
-  
   // create the static items
   var createStaticItems = function() {
     var maxW = world.cellsOnWidth - 1, maxH = world.cellsOnHeight - 1, item = null;
@@ -190,8 +185,12 @@ function Game() {
     bmp = new createjs.Bitmap(img);
     bmp.x = realPosition.x - world.cellWidthSize / 2;
     bmp.y = realPosition.y - world.cellHeightSize / 2;
-    item = new Item(Item.Type.OBSTACLE, 0, bmp);
+    item = new Item(type, value, bmp);
     world.addItem(item, x, y);
+    // add BMP instance to stage display list.
+    stage.addChild(world.map[x][y].graphics);
+    // update stage will render next frame
+    stage.update();
   };
 };
 

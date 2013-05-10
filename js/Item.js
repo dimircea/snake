@@ -10,7 +10,7 @@
  *          the graphics to be attached to this item
  */
 function Item(type, value, graphics) {
-  this.type = type || Item.Type.DEFAULT;
+  this.type = type || Item.Type.OBSTACLE;
   this.value = value || 0;
   this.setGraphics(graphics);
 };
