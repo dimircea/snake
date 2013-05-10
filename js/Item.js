@@ -30,32 +30,26 @@ Item.prototype.setGraphics = function(graphics) {
  * Define the type of items that can be created
  */
 Item.Type = {};
-Object.defineProperty(Item.Type, "DEFAULT", {
-  value: 0,
-  writable: false,
-  enumerable: true,
-  configurable: false
-});
-Object.defineProperty(Item.Type, "APPLE", {
+Object.defineProperty(Item.Type, "OBSTACLE", {
   value: 1,
   writable: false,
   enumerable: true,
   configurable: false
 });
-Object.defineProperty(Item.Type, "CHERRY", {
+Object.defineProperty(Item.Type, "APPLE", {
   value: 2,
   writable: false,
   enumerable: true,
   configurable: false
 });
-Object.defineProperty(Item.Type, "MAGIC", {
+Object.defineProperty(Item.Type, "CHERRY", {
   value: 3,
   writable: false,
   enumerable: true,
   configurable: false
 });
-Object.defineProperty(Item.Type, "OBSTACLE", {
-  value: -1,
+Object.defineProperty(Item.Type, "MAGIC", {
+  value: 4,
   writable: false,
   enumerable: true,
   configurable: false

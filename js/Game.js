@@ -3,7 +3,6 @@ function Game() {
   var self = this;
   // the difficulty level
   var difficultyLevel = 1;
-  
   // the game world - a grid space representation
   var world = new GridSpace(20, 15, "playground");
   // the snake actor - controllable by player
@@ -13,22 +12,16 @@ function Game() {
   // create a stage by getting a reference to the canvas
   var stage = new createjs.Stage("playground");
   
+  // the array with used images
+  this.images = [];
+  // the array with used audio
+  this.audio = [];
+  
   // initialize the Game Engine
   this.init = function() {
-    // Load assets
-   /* var queue = new createjs.LoadQueue();
-    queue.addEventListener("complete", function() {
-        self.stone1Img = queue.getResult("stone1");
-        self.stone2Img = queue.getResult("stone2");
-    });
-    queue.loadManifest([
-        {id: "stone1", src: "media/images/stone1.png"},
-        {id: "stone2", src: "media/images/stone2.png"},
-    ]);*/
-    
     // start playing the sound
-    //createjs.Sound.play("game", "none", 0, 0, -1);
-    
+    createjs.Sound.play("game", "none", 0, 0, -1);
+    // register keyboard events
     document.addEventListener('keydown', function(e) {
       var keyCode = (e.keyCode ? e.keyCode : e.which);
       switch(keyCode) {
@@ -58,7 +51,7 @@ function Game() {
 
   // the method that trigger the update on each clock tick
   var update = function() {
-    var collided = false, foodDetected = false;
+    var collided = false, foodDetected = false, mapPosition = null;
     // snake will move one step in the current direction
     snake.move();
     collided = world.checkCollision(snake.body);
@@ -70,6 +63,12 @@ function Game() {
       createjs.Sound.play("ouch");
     }
     drawSnake();
+    
+    // create dynamic items
+    mapPosition = world.generateRandomPosition(snake.body);
+    createItemOnMap(Item.Type.APPLE, difficultyLevel * 5, mapPosition.x, mapPosition.y);
+
+    // redraw scene
     stage.update();
   };
   
@@ -102,9 +101,9 @@ function Game() {
       coords = world.getCellRealCoordinates(snakePartPos.x, snakePartPos.y);
       if(firstDraw) {
         if(i === n-1) {
-          bmp = new createjs.Bitmap("media/images/snake-head.png");
+          bmp = new createjs.Bitmap(self.images["snakeHead"]);
         } else {
-          bmp = new createjs.Bitmap("media/images/snake-body.png");
+          bmp = new createjs.Bitmap(self.images["snakeBody"]);
         }
         snake.bodyGraphics.push(bmp);
         // add BMP Shape instance to stage display list.
@@ -171,15 +170,24 @@ function Game() {
   
   // create item to be placed on the given map coordinates
   var createItemOnMap = function(type, value, x, y) {
-    var realPosition = null, bmp = null, imgPath = null;
+    var realPosition = null, bmp = null, img = null;
     
     switch(type) {
       case Item.Type.OBSTACLE: 
-        imgPath = "media/images/obstacle.png";
+        img = self.images["obstacle"];
+        break;
+      case Item.Type.APPLE: 
+        img = self.images["apple"];
+        break;
+      case Item.Type.CHERRY: 
+        img = self.images["cherry"];
+        break;
+      case Item.Type.MAGIC: 
+        img = self.images["magic"];
         break;
     };
     realPosition = world.getCellRealCoordinates(x, y);
-    bmp = new createjs.Bitmap(imgPath);
+    bmp = new createjs.Bitmap(img);
     bmp.x = realPosition.x - world.cellWidthSize / 2;
     bmp.y = realPosition.y - world.cellHeightSize / 2;
     item = new Item(Item.Type.OBSTACLE, 0, bmp);
@@ -190,24 +198,27 @@ function Game() {
 // Finished loading the HTML Document, start playing then...
 window.addEventListener("load", function() {
   var game = new Game(), queue = new createjs.LoadQueue();
+  
+  // load sound assets
+  createjs.Sound.registerSound("media/sounds/game.mp3|media/sounds/game.ogg", "game");
+  createjs.Sound.registerSound("media/sounds/ouch.mp3|media/sounds/ouch.ogg", "ouch");
 
   // load graphic assets
   queue.addEventListener("complete", function() {
-    game.wallItemImg = queue.getResult("wall");
-    game.snakeHead = queue.getResult("snakeHead");
-    game.snakeBody = queue.getResult("snakeBody");
-    
-    // load sound assets
-    createjs.Sound.registerSound("media/sounds/game.mp3|media/sounds/game.ogg", "game");
-    createjs.Sound.registerSound("media/sounds/ouch.mp3|media/sounds/ouch.ogg", "ouch");
-    createjs.Sound.addEventListener("complete", function() {
-      game.init();
-      game.play();
-    });
+    game.images["obstacle"] = queue.getResult("obstacle");
+    game.images["snakeHead"] = queue.getResult("snakeHead");
+    game.images["snakeBody"] = queue.getResult("snakeBody");
+    game.images["apple"] = queue.getResult("apple");
+    game.images["cherry"] = queue.getResult("cherry");
+    // graphics loaded, so lets start playing
+    game.init();
+    game.play();
   });
   queue.loadManifest([
-    {id: "wall", src: "media/images/obstacle.png"},
+    {id: "obstacle", src: "media/images/obstacle.png"},
     {id: "snakeHead", src: "media/images/snake-head.png"},
-    {id: "snakeBody", src: "media/images/snake-body.png"}
+    {id: "snakeBody", src: "media/images/snake-body.png"},
+    {id: "apple", src: "media/images/apple.png"},
+    {id: "cherry", src: "media/images/cherry.png"},
   ]);
 });
