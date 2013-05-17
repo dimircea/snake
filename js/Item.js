@@ -22,47 +22,19 @@ function Item(type, value, graphics) {
  * @param graphics
  *          the graphics to be attached to this item
  */
-Item.prototype.setGraphics = function(graphics) {
+Item.prototype.setGraphics = function (graphics) {
   this.graphics = graphics || null;
-}
+};
 
 /**
  * Define the type of items that can be created
  */
 Item.Type = {};
-Object.defineProperty(Item.Type, "OBSTACLE", {
-  value: 1,
-  writable: false,
-  enumerable: true,
-  configurable: false
-});
-Object.defineProperty(Item.Type, "APPLE", {
-  value: 2,
-  writable: false,
-  enumerable: true,
-  configurable: false
-});
-Object.defineProperty(Item.Type, "CHERRY", {
-  value: 3,
-  writable: false,
-  enumerable: true,
-  configurable: false
-});
-Object.defineProperty(Item.Type, "STRAWBERRY", {
-  value: 4,
-  writable: false,
-  enumerable: true,
-  configurable: false
-});
-Object.defineProperty(Item.Type, "RASPBERRY", {
-  value: 5,
-  writable: false,
-  enumerable: true,
-  configurable: false
-});
-Object.defineProperty(Item.Type, "LEMON", {
-  value: 6,
-  writable: false,
-  enumerable: true,
-  configurable: false
+Object.defineProperties(Item.Type, {
+  "OBSTACLE": {value: 1, writable: false, enumerable: true, configurable: false},
+  "APPLE": {value: 2, writable: false, enumerable: true, configurable: false},
+  "CHERRY": {value: 3, writable: false, enumerable: true, configurable: false},
+  "STRAWBERRY": {value: 4, writable: false, enumerable: true, configurable: false},
+  "RASPBERRY": {value: 5, writable: false, enumerable: true, configurable: false},
+  "LEMON": {value: 6, writable: false, enumerable: true, configurable: false}
 });

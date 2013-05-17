@@ -19,71 +19,104 @@ function Game() {
   this.images = [];
   // the array with used audio
   this.audio = [];
-  
+
   // initialize the Game Engine
-  this.init = function() {
+  this.init = function () {
     difficultyLevel = 1;
     score = 0;
-    
+
     // register keyboard events
-    document.addEventListener('keydown', function(e) {
-      var keyCode = (e.keyCode ? e.keyCode : e.which);
-      switch(keyCode) {
-        case 37 : 
-          snake.moveLeft();
-        case 65 : 
-          snake.moveLeft();
+    document.addEventListener('keydown', function (e) {
+      var keyCode = e.keyCode ? e.keyCode : e.which;
+      switch (keyCode) {
+      case 37:
+        snake.moveLeft();
         break;
-        case 38 : 
-          snake.moveUp();
-        case 87 : 
-          snake.moveUp();
+      case 65:
+        snake.moveLeft();
         break;
-        case 39 : 
-          snake.moveRight();
-        case 68 : 
-          snake.moveRight();
+      case 38:
+        snake.moveUp();
         break;
-        case 40 : 
-          snake.moveDown();
-        case 83 : 
-          snake.moveDown();
+      case 87:
+        snake.moveUp();
+        break;
+      case 39:
+        snake.moveRight();
+        break;
+      case 68:
+        snake.moveRight();
+        break;
+      case 40:
+        snake.moveDown();
+        break;
+      case 83:
+        snake.moveDown();
         break;
       }
     }, false);
+
+    // register keyboard events
+    document.addEventListener('click', function (e) {
+      var offsetX = 0, offsetY = 0, xMouse = 0, yMouse = 0, diffX = 0, diffY = 0;
+      var cellUnderMouse = null, n = snake.body.length, snakeHead = snake.body[n - 1];
+      var element = e.target;
+      if (element.offsetParent) {
+        do {
+          offsetX += element.offsetLeft;
+          offsetY += element.offsetTop;
+          element = element.offsetParent
+        } while (element);
+      }
+      xMouse = e.pageX - offsetX;
+      yMouse = e.pageY - offsetY;
+      cellUnderMouse = world.getSpaceCoordinates(xMouse, yMouse);
+      diffX = snakeHead.x - cellUnderMouse.x;
+      diffY = snakeHead.y - cellUnderMouse.y;
+      if (diffX < 0 && diffY === 0) {
+        snake.moveRight();
+      } else if (diffX > 0 && diffY === 0) {
+        snake.moveLeft();
+      } else if (diffY < 0 && diffX === 0) {
+        snake.moveUp();
+      } else if (diffY > 0 && diffX === 0) {
+        snake.moveDown();
+      }
+    }, false);
+
     // draw the snake in the initial position
     drawSnake();
-    
+
     // create the static items
     createStaticItems();
-    
+
     // show initial score
     updateScore(0);
-    
+
     // show initial level
     updateLevel(0);
-    
+
     // show initial speed
     updateSpeed(0);
   };
 
   // the method that trigger the update on each clock tick
-  var update = function(e) {
+  var update = function (e) {
     var bodyCollision = false, itemCollision = false, mapPosition = null;
     var playTime = parseInt(e.runTime / 1000), bmp = null, snakeHead = null;
-    
+
     // snake will move one step in the current direction
     snake.move();
     // redraw the snake
     drawSnake();
-    
+
     itemCollision = world.checkCollision(snake.body);
     bodyCollision = snake.checkBodyCollision();
     snakeHead = snake.body[snake.body.length - 1];
-    if(bodyCollision || (itemCollision !== null && itemCollision.type === Item.Type.OBSTACLE)) {
+    if (bodyCollision || (itemCollision !== null && itemCollision.type === Item.Type.OBSTACLE)) {
       self.stop();
       createjs.Sound.play("ouch");
-    } else if(itemCollision !== null && itemCollision.type !== Item.Type.OBSTACLE) {
+    } else if (itemCollision !== null && itemCollision.type !== Item.Type.OBSTACLE) {
       bmp = new createjs.Bitmap(self.images["snakeBody"]);
       // add BMP Shape instance to stage display list.
       stage.addChild(bmp);
@@ -93,49 +126,48 @@ function Game() {
       updateScore(itemCollision.value);
       createjs.Sound.play("eating");
       snake.grow(bmp);
-      
+
       // update level if is the case
-      if(score > (difficultyLevel * (difficultyLevel + 1) * 10)) {
+      if (score > (difficultyLevel * (difficultyLevel + 1) * 20)) {
         updateLevel(1);    
         updateSpeed(1);
       }
-    }  
+    }
     // create dynamic food items
-    if(!foodItemAvailable && playTime !== 0 && playTime % 3 === 0) {
+    if (!foodItemAvailable && playTime !== 0 && playTime % 3 === 0) {
       createFoodItem();
       foodItemAvailable = true;
     }
   };
-  
+
   // the method that will trigger the game start
-  this.play = function(){
+  this.play = function (){
     // Start game loop
     if (!createjs.Ticker.hasEventListener('tick')) {
       createjs.Ticker.setFPS(fps);
       createjs.Ticker.addEventListener('tick', update);
     }
   };
-  
+
   // the method that will trigger the game stop
-  this.stop = function(){
+  this.stop = function (){
     // reset listeners, so no more snake updates
     createjs.Ticker.init();
   };
-  
+
   // draw the snake body
-  var drawSnake = function() {
+  var drawSnake = function () {
     var n = snake.body.length, i = 0, bmp = null; 
     var snakeHead = snake.body[n - 1], snakePartPos = null;
-    var coords = null, radius = world.getMinCellSize() / 2;
-    var shape = null, firstDraw = (snake.bodyGraphics.length < 1);
+    var coords = null, shape = null, firstDraw = (snake.bodyGraphics.length < 1);
     var offsetX = 0, offsetY = 0;
 
     // draw the snake
-    for(i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
       snakePartPos = snake.body[i];
       coords = world.getCellRealCoordinates(snakePartPos.x, snakePartPos.y);
-      if(firstDraw) {
-        if(i === n-1) {
+      if (firstDraw) {
+        if (i === n - 1) {
           bmp = new createjs.Bitmap(self.images["snakeHead"]);
         } else {
           bmp = new createjs.Bitmap(self.images["snakeBody"]);
@@ -146,11 +178,11 @@ function Game() {
       } else {
         bmp = snake.bodyGraphics[i];
       }
-      if(bmp.rotation === -90) {
+      if (bmp.rotation === -90) {
         offsetY = -world.cellHeightSize;
-      } else if(bmp.rotation === 90) {
+      } else if (bmp.rotation === 90) {
         offsetX = -world.cellWidthSize;
-      } else if(bmp.rotation === 180) {
+      } else if (bmp.rotation === 180) {
         offsetY = -world.cellHeightSize;
         offsetX = -world.cellWidthSize;
       }
@@ -160,38 +192,37 @@ function Game() {
     // update stage will render next frame
     stage.update();
   };
-  
+
   // create the static items
-  var createStaticItems = function() {
-    var maxW = world.cellsOnWidth - 1, maxH = world.cellsOnHeight - 1, item = null;
-    var i = 0, itemsNr = difficultyLevel * maxW * maxH * 0.0075;
-    var bmp = null, mapPosition = null, realPosition = null;
+  var createStaticItems = function () {
+    var maxW = world.cellsOnWidth - 1, maxH = world.cellsOnHeight - 1;
+    var i = 0, itemsNr = difficultyLevel * maxW * maxH * 0.0075, mapPosition = null;
     // create top-bottom map margins
-    for(i = 0; i <= maxW; i++) {
+    for (i = 0; i <= maxW; i++) {
       // top row
       createItemOnMap(Item.Type.OBSTACLE, 0, i, maxH);
       // bottom row
       createItemOnMap(Item.Type.OBSTACLE, 0, i, 0);
     }
     // create left-right map margins
-    for(i = 1; i < maxH; i++) {
+    for (i = 1; i < maxH; i++) {
       // left row
       createItemOnMap(Item.Type.OBSTACLE, 0, 0, i);
       // bottom row
       createItemOnMap(Item.Type.OBSTACLE, 0, maxW, i);
     }
     // create the additional obstacles on the map
-    for(i = 0; i < itemsNr; i++) {
+    for (i = 0; i < itemsNr; i++) {
       mapPosition = world.generateRandomPosition(snake.body);
       createItemOnMap(Item.Type.OBSTACLE, 0, mapPosition.x, mapPosition.y);
     }
   };
-  
+
   // create item to be placed on the given map coordinates
-  var createItemOnMap = function(type, value, x, y) {
-    var realPosition = null, bmp = null, img = null;
-    
-    switch(type) {
+  var createItemOnMap = function (type, value, x, y) {
+    var realPosition = null, bmp = null, img = null, item = null;
+
+    switch (type) {
       case Item.Type.OBSTACLE: 
         img = self.images["obstacle"];
         break;
@@ -210,7 +241,7 @@ function Game() {
       case Item.Type.LEMON: 
         img = self.images["lemon"];
         break;  
-    };
+    }
     realPosition = world.getCellRealCoordinates(x, y);
     bmp = new createjs.Bitmap(img);
     bmp.x = realPosition.x - world.cellWidthSize / 2;
@@ -224,10 +255,10 @@ function Game() {
   };
   
   // create new food item on the map
-  var createFoodItem = function() {
+  var createFoodItem = function () {
     var type = 2 + Math.floor(Math.random() * 5);
     var value = difficultyLevel * (type + 3);;
-    switch(type) {
+    switch (type) {
       case 2: 
         type = Item.Type.APPLE;
         break;
@@ -249,21 +280,21 @@ function Game() {
   };
   
   // update the score
-  var updateScore = function(addedValue) {
+  var updateScore = function (addedValue) {
     var scoreElem = document.getElementById("score");
     score += addedValue;
     scoreElem.removeChild(scoreElem.firstChild);
     scoreElem.appendChild(document.createTextNode(score)); 
   };
   // update the level
-  var updateLevel = function(addedValue) {
+  var updateLevel = function (addedValue) {
     var levelElem = document.getElementById("level");
     difficultyLevel += addedValue;
     levelElem.removeChild(levelElem.firstChild);
     levelElem.appendChild(document.createTextNode(difficultyLevel)); 
   };
   // update the snake speed
-  var updateSpeed = function(updateSpeed) {
+  var updateSpeed = function (updateSpeed) {
     var speedElem = document.getElementById("speed");
     snake.setSpeed(snake.speed + updateSpeed);
     fps = snake.speed;
@@ -274,8 +305,8 @@ function Game() {
 };
 
 // Finished loading the HTML Document, start playing then...
-window.addEventListener("load", function() {
-  var game = new Game(), queue = new createjs.LoadQueue();
+window.addEventListener("load", function () {
+  var game = new Game(), queue = new createjs.LoadQueue(false, "media/images/");
   
   // load sound assets
   createjs.Sound.registerSound("media/sounds/game.mp3|media/sounds/game.ogg", "game");
@@ -299,13 +330,13 @@ window.addEventListener("load", function() {
     game.play();
   });
   queue.loadManifest([
-    {id: "obstacle", src: "media/images/obstacle.png"},
-    {id: "snakeHead", src: "media/images/snake-head.png"},
-    {id: "snakeBody", src: "media/images/snake-body.png"},
-    {id: "apple", src: "media/images/apple.png"},
-    {id: "cherry", src: "media/images/cherry.png"},
-    {id: "strawberry", src: "media/images/strawberry.png"},
-    {id: "raspberry", src: "media/images/raspberry.png"},
-    {id: "lemon", src: "media/images/lemon.png"},
+    {id: "obstacle", src: "obstacle.png"},
+    {id: "snakeHead", src: "snake-head.png"},
+    {id: "snakeBody", src: "snake-body.png"},
+    {id: "apple", src: "apple.png"},
+    {id: "cherry", src: "cherry.png"},
+    {id: "strawberry", src: "strawberry.png"},
+    {id: "raspberry", src: "raspberry.png"},
+    {id: "lemon", src: "lemon.png"}
   ]);
 });

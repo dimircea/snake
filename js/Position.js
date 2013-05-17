@@ -7,7 +7,7 @@
  * @param y
  *          the X coordinate of the position
  */
- function Position(x, y) {
+ function Position (x, y) {
   this.x = x || 0;
   this.y = y || 0;
  };

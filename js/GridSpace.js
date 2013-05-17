@@ -11,7 +11,7 @@
  */
 function GridSpace(cellsOnWidth, cellsOnHeight, canvasElementID) {
   var i = 0, j = 0;
-  
+
   // reference to the canvas element where all the drawing is made
   this.canvasElement = document.getElementById(canvasElementID);
   // the width of cell
@@ -22,12 +22,12 @@ function GridSpace(cellsOnWidth, cellsOnHeight, canvasElementID) {
   this.cellsOnWidth = cellsOnWidth;
   // the number of verical cells
   this.cellsOnHeight = cellsOnHeight;
-  
+
   // initialize the map structure - initially all the map is empty
   this.map = [];
-  for(i = 0; i < cellsOnWidth; i++) {
+  for (i = 0; i < cellsOnWidth; i++) {
     this.map[i] = [];
-    for(j = 0; j < cellsOnHeight; j++) {
+    for (j = 0; j < cellsOnHeight; j++) {
       this.map[i][j] = null;
     }
   }
@@ -39,7 +39,7 @@ function GridSpace(cellsOnWidth, cellsOnHeight, canvasElementID) {
  * Get the minimul cell size
  * @return the minimum between grid cell width and height
  */
-GridSpace.prototype.getMinCellSize = function() {
+GridSpace.prototype.getMinCellSize = function () {
   return Math.min(this.cellWidthSize, this.cellHeightSize);
 };
 
@@ -54,11 +54,27 @@ GridSpace.prototype.getMinCellSize = function() {
  *          the Y coordinate of the cell
  * @return coordinates of the cell at the given position
  */
-GridSpace.prototype.getCellRealCoordinates = function(x, y) {
-  return {
-    x : x * this.cellWidthSize + this.cellWidthSize / 2,
-    y : this.canvasElement.height - (y * this.cellHeightSize + this.cellHeightSize / 2)
-  };
+GridSpace.prototype.getCellRealCoordinates = function (x, y) {
+  var xReal = x * this.cellWidthSize + this.cellWidthSize / 2;
+  var yReal = this.canvasElement.height - (y * this.cellHeightSize + this.cellHeightSize / 2);
+  return new Position(xReal, yReal);
+};
+
+/**
+ * @author Mircea Diaconescu
+ *
+ * Knowing the continuous real world coordinates, this method returns
+ * the coordinate of the cell that is at the given coordinates
+ * @param x
+ *          the X coordinate of the real world
+ * @param y
+ *          the Y coordinate of the real world
+ * @return coordinates of the cell at the given real world position
+ */
+GridSpace.prototype.getSpaceCoordinates = function (x, y) {
+  var xCell = parseInt(x / this.cellWidthSize);
+  var yCell = this.cellsOnHeight - parseInt(y / this.cellHeightSize) - 1;
+  return new Position(xCell, yCell);
 };
 
 /**
@@ -70,33 +86,33 @@ GridSpace.prototype.getCellRealCoordinates = function(x, y) {
  *          an array of positions to exclude
  * @return coordinates of the cell at the given position
  */
-GridSpace.prototype.generateRandomPosition = function(excludePositions) {
+GridSpace.prototype.generateRandomPosition = function (excludePositions) {
   var maxW = this.cellsOnWidth, maxH = this.cellsOnHeight;
   var x = 0, y = 0, i = 0, n = 0, found = false;
-  
+
   // be sure that the position is free
-  while(!found) {
+  while (!found) {
     x = Math.floor(Math.random() * maxW);
     y = Math.floor(Math.random() * maxH);
     found = true;
     // check free position on the map
-    if(this.map[x][y] !== null) {
+    if (this.map[x][y] !== null) {
       found = false;
       continue;
     }
     // check the excluded positions
-    if(excludePositions instanceof Array) {
+    if (excludePositions instanceof Array) {
       n = excludePositions.length;
-      for(i = 0; i < n; i++) {
+      for (i = 0; i < n; i++) {
         position = excludePositions[i];
-        if(position.x === x && position.y === y) {
+        if (position.x === x && position.y === y) {
           found = false;
           break;
         }
       }
     }
   }
-  return  new Position (x, y);
+  return new Position (x, y);
 };
 
 /**
@@ -108,20 +124,17 @@ GridSpace.prototype.generateRandomPosition = function(excludePositions) {
  *          the array defining the snake body positions
  * @return the collided Item or null
  */
-GridSpace.prototype.checkCollision = function(snakeBody) {
+GridSpace.prototype.checkCollision = function (snakeBody) {
   var snakeHead = snakeBody[snakeBody.length - 1];
   var headX = snakeHead.x, headY = snakeHead.y, item = null;
 
   // check collision with the space boundaries
-  if(headX < 0 || headY < 0 
-      || headX >= this.cellsOnWidth 
-      || headY >= this.cellsOnHeight) {
-      
+  if (headX < 0 || headY < 0 || headX >= this.cellsOnWidth || headY >= this.cellsOnHeight) {
       return new Item(Item.Type.OBSTACLE, 0);
   }
   // check the collision with items
   item = this.map[headX][headY];
-  if(item instanceof Item){
+  if (item instanceof Item){
     return item;
   }
   return null;
@@ -140,9 +153,9 @@ GridSpace.prototype.checkCollision = function(snakeBody) {
  *          the y coordinate (as number of cells starting from bottom-left = 0) 
  *          where to place the new item
  */
-GridSpace.prototype.addItem = function(item, x, y) {
-  if(!(item instanceof Item) || typeof(x) !== "number" || x % 1 !== 0 
-    || typeof(y) !== "number" || y % 1 !== 0) {
+GridSpace.prototype.addItem = function (item, x, y) {
+  if (!(item instanceof Item) || typeof x !== "number" || x % 1 !== 0
+    || typeof y !== "number" || y % 1 !== 0) {
     return;
   }
   this.map[x][y] = item;
@@ -159,10 +172,10 @@ GridSpace.prototype.addItem = function(item, x, y) {
  *          the y coordinate (as number of cells starting from bottom-left = 0) 
  *          where to place the new item (defaults to 0 if value not provided)
  */
-GridSpace.prototype.removeItem = function(x, y) {
-  if(typeof(x) !== "number" || x % 1 !== 0 
-    || typeof(y) !== "number" || y % 1 !== 0) {
+GridSpace.prototype.removeItem = function (x, y) {
+  if(typeof x !== "number" || x % 1 !== 0
+    || typeof y !== "number" || y % 1 !== 0) {
     return;
   }
   this.map[x][y] = null;
-};  
+};
