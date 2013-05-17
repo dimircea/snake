@@ -105,11 +105,6 @@ function Game() {
     var bodyCollision = false, itemCollision = false, mapPosition = null;
     var playTime = parseInt(e.runTime / 1000), bmp = null, snakeHead = null;
 
-    // snake will move one step in the current direction
-    snake.move();
-    // redraw the snake
-    drawSnake();
-
     itemCollision = world.checkCollision(snake.body);
     bodyCollision = snake.checkBodyCollision();
     snakeHead = snake.body[snake.body.length - 1];
@@ -132,7 +127,13 @@ function Game() {
         updateLevel(1);    
         updateSpeed(1);
       }
+    } else {
+      // snake will move one step in the current direction
+      snake.move();
     }
+    // redraw the snake
+    drawSnake();
+
     // create dynamic food items
     if (!foodItemAvailable && playTime !== 0 && playTime % 3 === 0) {
       createFoodItem();

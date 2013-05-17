@@ -53,23 +53,29 @@ Snake.prototype.setSpeed = function (speed) {
  *          the graphic element for the new body part
  */
 Snake.prototype.grow = function (graphics) {
-  var head = this.body[this.body.length - 1];
+  var headIndex = this.body.length - 1;
+  var head = this.body[headIndex];
+  var headGraphics = this.bodyGraphics[headIndex];
   switch (this.direction) {
-    case Direction.NONE :
+    case Direction.NONE:
       return;
-    case Direction.UP :
+    case Direction.UP:
+      headGraphics.rotation = -90;
       x = 0;
       y = 1;
       break;
-    case Direction.RIGHT :
+    case Direction.RIGHT:
+      headGraphics.rotation = 0;
       x = 1;
       y = 0;
       break;
-    case Direction.DOWN :
+    case Direction.DOWN:
+      headGraphics.rotation = 90;
       x = 0;
       y = -1;
       break;
-    case Direction.LEFT :
+    case Direction.LEFT:
+      headGraphics.rotation = 180;
       x = -1;
       y = 0;
       break;
